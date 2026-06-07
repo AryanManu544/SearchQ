@@ -1,1 +1,1 @@
-window.SEARCHIQ_API_BASE_URL = "";
+window.SEARCHIQ_API_BASE_URL = "https://searchq-psp6.onrender.com/api";
