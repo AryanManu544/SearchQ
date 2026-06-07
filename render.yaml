@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: searchiq-api
+    runtime: node
+    plan: free
+    buildCommand: npm run deploy:build
+    startCommand: npm start
+    envVars:
+      - key: SEARCH_DATASET_PATH
+        value: 20news-18828
+      - key: SEARCH_ENGINE_PATH
+        value: ./search_engine
+      - key: WORD_EMBEDDINGS_PATH
+        value: ./src/models/word_embeddings.json
+      - key: SEMANTIC_EXPANSION_LIMIT
+        value: "5"
+      - key: SEMANTIC_SIMILARITY_THRESHOLD
+        value: "0.45"

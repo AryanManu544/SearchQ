@@ -1,12 +1,15 @@
 {
-  "name": "dsa-search-engine-api",
+  "name": "searchiq-semantic-search",
   "version": "1.0.0",
   "private": true,
-  "main": "src/api/server.js",
+  "main": "src/backend/server.js",
   "scripts": {
     "build:native": "bash ./compile.sh",
-    "start": "node src/api/server.js",
-    "dev": "node src/api/server.js"
+    "dataset:prepare": "test -d 20news-18828 || tar -xzf 20news-18828.tar.gz",
+    "deploy:build": "npm install && npm run build:native && npm run dataset:prepare",
+    "check": "node --check src/backend/server.js && node --check public/assets/js/app.js",
+    "start": "node src/backend/server.js",
+    "dev": "node src/backend/server.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

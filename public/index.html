@@ -3,18 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Search Engine</title>
+    <title>SearchiQ Semantic Search</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/styles.css" />
+    <meta
+      name="description"
+      content="SearchiQ is a semantic document search engine powered by a native C++ index, TF-IDF ranking, and word embedding query expansion."
+    />
+    <link rel="stylesheet" href="/assets/css/styles.css" />
   </head>
   <body>
-    <div class="bg-orb bg-orb-one"></div>
-    <div class="bg-orb bg-orb-two"></div>
     <div class="bg-grid"></div>
     <div class="page-shell">
       <main class="app">
@@ -31,7 +33,7 @@
               <span class="logo-i">i</span>
               <span class="logo-q">Q</span>
             </div>
-            <p class="tagline">A clean search surface for your C++ engine, now wrapped with autocomplete, live results, and developer-friendly stats.</p>
+            <p class="tagline">Semantic document retrieval powered by a native C++ index, TF-IDF ranking, and word embedding query expansion.</p>
 
             <form id="home-form" class="search-stack" autocomplete="off">
               <div class="search-box search-box-home">
@@ -52,9 +54,9 @@
             </form>
 
             <div class="hero-highlights">
+              <span class="highlight-chip">Semantic expansion</span>
               <span class="highlight-chip">TF-IDF ranking</span>
               <span class="highlight-chip">Autocomplete</span>
-              <span class="highlight-chip">Realtime API wrapper</span>
             </div>
 
             <div class="home-meta">
@@ -119,7 +121,7 @@
         <div class="modal-header">
           <div>
             <p class="modal-eyebrow">Developer Dashboard</p>
-            <h2 id="stats-modal-title" class="modal-title">Index and Search Stats</h2>
+            <h2 id="stats-modal-title" class="modal-title">Index and Model Stats</h2>
           </div>
           <button id="stats-modal-close" class="modal-close" type="button" aria-label="Close stats modal">
             ×
@@ -143,6 +145,14 @@
             <article class="stat-tile">
               <p class="stat-label">Last search time</p>
               <p id="stats-search-time" class="stat-value">--</p>
+            </article>
+            <article class="stat-tile">
+              <p class="stat-label">Embedding terms</p>
+              <p id="stats-model-terms" class="stat-value">--</p>
+            </article>
+            <article class="stat-tile">
+              <p class="stat-label">Vector dimensions</p>
+              <p id="stats-model-dimensions" class="stat-value">--</p>
             </article>
           </div>
         </div>
@@ -201,6 +211,7 @@
       </div>
     </div>
 
-    <script src="/app.js"></script>
+    <script src="/config.js"></script>
+    <script src="/assets/js/app.js"></script>
   </body>
 </html>
