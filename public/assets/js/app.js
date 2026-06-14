@@ -1,3 +1,4 @@
+const backgroundCanvas = document.getElementById("semantic-background");
 const homeView = document.getElementById("home-view");
 const resultsView = document.getElementById("results-view");
 const homeForm = document.getElementById("home-form");
@@ -13,48 +14,125 @@ const errorState = document.getElementById("error-state");
 const resultsList = document.getElementById("results-list");
 const resultsSummary = document.getElementById("results-summary");
 const brandHomeButton = document.getElementById("brand-home-button");
-const homeDictionaryButton = document.getElementById("home-dictionary-button");
-const homeDashboardButton = document.getElementById("home-dashboard-button");
-const resultsDictionaryButton = document.getElementById("results-dictionary-button");
-const resultsDashboardButton = document.getElementById("results-dashboard-button");
-const statsModal = document.getElementById("stats-modal");
-const statsModalClose = document.getElementById("stats-modal-close");
-const statsModalError = document.getElementById("stats-modal-error");
-const statsTotalDocuments = document.getElementById("stats-total-documents");
-const statsTotalTerms = document.getElementById("stats-total-terms");
-const statsTotalPostings = document.getElementById("stats-total-postings");
-const statsSearchTime = document.getElementById("stats-search-time");
-const statsModelTerms = document.getElementById("stats-model-terms");
-const statsModelDimensions = document.getElementById("stats-model-dimensions");
-const dictionaryModal = document.getElementById("dictionary-modal");
-const dictionaryModalClose = document.getElementById("dictionary-modal-close");
-const dictionaryLoading = document.getElementById("dictionary-loading");
-const dictionaryError = document.getElementById("dictionary-error");
-const dictionaryMeta = document.getElementById("dictionary-meta");
-const dictionaryResults = document.getElementById("dictionary-results");
-const dictionaryPagination = document.getElementById("dictionary-pagination");
-const dictionaryPrevButton = document.getElementById("dictionary-prev");
-const dictionaryNextButton = document.getElementById("dictionary-next");
-const dictionaryPageInfo = document.getElementById("dictionary-page-info");
-const dictionarySearchInput = document.getElementById("dictionary-search-input");
 
-const API_BASE_URL = window.SEARCHIQ_API_BASE_URL || `${window.location.origin}/api`;
+const configuredApiBaseUrl = window.SEARCHIQ_API_BASE_URL || "";
+const API_BASE_URL = configuredApiBaseUrl || `${window.location.origin}/api`;
 const AUTOCOMPLETE_DEBOUNCE_MS = 300;
-const DICTIONARY_PAGE_LIMIT = 100;
 
-let activeQuery = "";
 let activeAutocompleteIndex = -1;
 let currentSuggestions = [];
 let lastAutocompleteRequestId = 0;
 let latestStats = null;
-let lastSearchDurationMs = null;
-let dictionaryPage = 1;
-let dictionaryTotalPages = 0;
-let dictionaryTotalItems = 0;
-let dictionarySearchTerm = "";
+
+function startSemanticBackground() {
+  if (!backgroundCanvas) {
+    return;
+  }
+
+  const context = backgroundCanvas.getContext("2d");
+  const pointer = { x: 0, y: 0, active: false };
+  const colors = ["#15b8a6", "#f4b942", "#ff6b4a", "#2b6dff"];
+  let width = 0;
+  let height = 0;
+  let nodes = [];
+
+  function resize() {
+    const ratio = window.devicePixelRatio || 1;
+    width = window.innerWidth;
+    height = window.innerHeight;
+    backgroundCanvas.width = Math.floor(width * ratio);
+    backgroundCanvas.height = Math.floor(height * ratio);
+    backgroundCanvas.style.width = `${width}px`;
+    backgroundCanvas.style.height = `${height}px`;
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    const nodeCount = Math.max(32, Math.min(84, Math.floor(width / 18)));
+    nodes = Array.from({ length: nodeCount }, (_, index) => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 0.45,
+      vy: (Math.random() - 0.5) * 0.45,
+      radius: 1.5 + Math.random() * 2.2,
+      color: colors[index % colors.length],
+    }));
+  }
+
+  function draw() {
+    context.clearRect(0, 0, width, height);
+
+    const wash = context.createLinearGradient(0, 0, width, height);
+    wash.addColorStop(0, "rgba(10, 20, 31, 0.05)");
+    wash.addColorStop(0.42, "rgba(21, 184, 166, 0.09)");
+    wash.addColorStop(1, "rgba(255, 107, 74, 0.10)");
+    context.fillStyle = wash;
+    context.fillRect(0, 0, width, height);
+
+    for (const node of nodes) {
+      node.x += node.vx;
+      node.y += node.vy;
+
+      if (node.x < -20 || node.x > width + 20) {
+        node.vx *= -1;
+      }
+      if (node.y < -20 || node.y > height + 20) {
+        node.vy *= -1;
+      }
+
+      if (pointer.active) {
+        const dx = node.x - pointer.x;
+        const dy = node.y - pointer.y;
+        const distance = Math.hypot(dx, dy);
+        if (distance < 160) {
+          const force = (160 - distance) / 160;
+          node.x += dx * force * 0.018;
+          node.y += dy * force * 0.018;
+        }
+      }
+    }
+
+    for (let i = 0; i < nodes.length; i += 1) {
+      for (let j = i + 1; j < nodes.length; j += 1) {
+        const left = nodes[i];
+        const right = nodes[j];
+        const distance = Math.hypot(left.x - right.x, left.y - right.y);
+        if (distance < 150) {
+          context.beginPath();
+          context.moveTo(left.x, left.y);
+          context.lineTo(right.x, right.y);
+          context.strokeStyle = `rgba(16, 24, 32, ${0.11 * (1 - distance / 150)})`;
+          context.lineWidth = 1;
+          context.stroke();
+        }
+      }
+    }
+
+    for (const node of nodes) {
+      context.beginPath();
+      context.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+      context.fillStyle = node.color;
+      context.globalAlpha = 0.62;
+      context.fill();
+      context.globalAlpha = 1;
+    }
+
+    window.requestAnimationFrame(draw);
+  }
+
+  window.addEventListener("resize", resize);
+  window.addEventListener("pointermove", (event) => {
+    pointer.x = event.clientX;
+    pointer.y = event.clientY;
+    pointer.active = true;
+  });
+  window.addEventListener("pointerleave", () => {
+    pointer.active = false;
+  });
+
+  resize();
+  draw();
+}
 
 function escapeHtml(value) {
-  return value
+  return String(value || "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -188,7 +266,7 @@ function formatDuration(durationMs) {
 }
 
 function formatSemanticSummary(query, results, durationMs, semantic) {
-  const baseSummary = `${results.length} result${results.length === 1 ? "" : "s"} for “${query}” in ${formatDuration(durationMs)}`;
+  const baseSummary = `${results.length} result${results.length === 1 ? "" : "s"} for "${query}" in ${formatDuration(durationMs)}`;
   const expandedTerms = Array.isArray(semantic?.expandedTerms) ? semantic.expandedTerms : [];
 
   if (!semantic?.enabled || expandedTerms.length === 0) {
@@ -196,148 +274,19 @@ function formatSemanticSummary(query, results, durationMs, semantic) {
   }
 
   const terms = expandedTerms.map((item) => item.term || item).filter(Boolean).slice(0, 5);
-  return `${baseSummary} • AI expanded with ${terms.join(", ")}`;
-}
-
-function renderStatsModal() {
-  statsTotalDocuments.textContent = latestStats ? formatInteger(latestStats.totalDocuments) : "--";
-  statsTotalTerms.textContent = latestStats ? formatInteger(latestStats.totalTerms) : "--";
-  statsTotalPostings.textContent = latestStats ? formatInteger(latestStats.totalPostings) : "--";
-  statsSearchTime.textContent = formatDuration(lastSearchDurationMs);
-  statsModelTerms.textContent = latestStats?.semanticModel?.enabled
-    ? formatInteger(latestStats.semanticModel.vocabularySize)
-    : "--";
-  statsModelDimensions.textContent = latestStats?.semanticModel?.enabled
-    ? formatInteger(latestStats.semanticModel.dimensions)
-    : "--";
-}
-
-function setDictionaryLoading(isLoading) {
-  dictionaryLoading.classList.toggle("hidden", !isLoading);
-  dictionaryLoading.classList.toggle("dictionary-loading-card", isLoading);
-}
-
-function setDictionaryError(message = "") {
-  dictionaryError.textContent = message;
-  dictionaryError.classList.toggle("hidden", !message);
-}
-
-function renderDictionaryTerms(items) {
-  if (!items.length) {
-    dictionaryResults.innerHTML = `
-      <div class="dictionary-empty">
-        <div>
-          <p class="dictionary-empty-title">No matching indexed terms</p>
-          <p class="dictionary-empty-copy">Try a shorter prefix, or clear the search field to browse the dictionary page by page.</p>
-          <div class="dictionary-browse-hint">Prefix search works best with 2-5 letters</div>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  dictionaryResults.innerHTML = items
-    .map(
-      (term) => `
-        <article class="dictionary-row">
-          <div class="dictionary-row-word">${escapeHtml(String(term))}</div>
-        </article>
-      `
-    )
-    .join("");
-}
-
-function renderDictionaryPagination() {
-  dictionaryMeta.textContent = dictionarySearchTerm
-    ? `${formatInteger(dictionaryTotalItems)} matches for “${dictionarySearchTerm}”`
-    : `${formatInteger(dictionaryTotalItems)} indexed terms`;
-  dictionaryMeta.classList.remove("hidden");
-  dictionaryPageInfo.textContent = dictionaryTotalPages > 0
-    ? `Page ${dictionaryPage} of ${dictionaryTotalPages}`
-    : dictionarySearchTerm
-      ? "Search mode"
-      : "No pages available";
-  dictionaryPrevButton.disabled = dictionaryPage <= 1;
-  dictionaryNextButton.disabled = dictionaryPage >= dictionaryTotalPages;
-  dictionaryPagination.classList.toggle("hidden", dictionarySearchTerm ? true : dictionaryTotalPages <= 0);
-}
-
-async function loadDictionaryPage(page) {
-  dictionaryPage = page;
-  setDictionaryLoading(true);
-  setDictionaryError("");
-  dictionaryResults.innerHTML = "";
-  dictionaryPagination.classList.add("hidden");
-
-  try {
-    if (dictionarySearchTerm) {
-      const suggestions = await fetchJson(
-        `${API_BASE_URL}/autocomplete?prefix=${encodeURIComponent(dictionarySearchTerm)}`
-      );
-      const items = Array.isArray(suggestions.suggestions) ? suggestions.suggestions : [];
-      dictionaryPage = 1;
-      dictionaryTotalPages = items.length > 0 ? 1 : 0;
-      dictionaryTotalItems = items.length;
-      renderDictionaryTerms(items);
-      renderDictionaryPagination();
-    } else {
-      const data = await fetchJson(`${API_BASE_URL}/dictionary?page=${page}&limit=${DICTIONARY_PAGE_LIMIT}`);
-      dictionaryPage = Number(data.page) || 1;
-      dictionaryTotalPages = Number(data.total_pages) || 0;
-      dictionaryTotalItems = Number(data.total_items) || 0;
-      renderDictionaryTerms(Array.isArray(data.items) ? data.items : []);
-      renderDictionaryPagination();
-    }
-  } catch (error) {
-    dictionaryTotalPages = 0;
-    dictionaryTotalItems = 0;
-    setDictionaryError(error.message || "Unable to load dictionary.");
-    dictionaryResults.innerHTML = "";
-  } finally {
-    setDictionaryLoading(false);
-  }
-}
-
-async function openDictionaryModal() {
-  dictionaryModal.classList.remove("hidden");
-  dictionarySearchInput.focus();
-  await loadDictionaryPage(1);
-}
-
-function closeDictionaryModal() {
-  dictionaryModal.classList.add("hidden");
+  return `${baseSummary} | expanded with ${terms.join(", ")}`;
 }
 
 async function fetchStats() {
   try {
     const stats = await fetchJson(`${API_BASE_URL}/stats`);
     latestStats = stats;
-    homeStats.textContent = `${stats.totalDocuments} docs indexed • ${stats.totalTerms} terms`;
+    const vectors = stats.semanticModel?.enabled ? ` | ${formatInteger(stats.semanticModel.vocabularySize)} embedding terms` : "";
+    homeStats.textContent = `${formatInteger(stats.totalDocuments)} docs indexed${vectors}`;
     homeStats.classList.remove("hidden");
-    renderStatsModal();
   } catch (_error) {
     homeStats.classList.add("hidden");
   }
-}
-
-async function openStatsModal() {
-  statsModal.classList.remove("hidden");
-  statsModalError.classList.add("hidden");
-  statsModalError.textContent = "";
-  renderStatsModal();
-
-  try {
-    const stats = await fetchJson(`${API_BASE_URL}/stats`);
-    latestStats = stats;
-    renderStatsModal();
-  } catch (error) {
-    statsModalError.textContent = error.message || "Unable to load stats right now.";
-    statsModalError.classList.remove("hidden");
-  }
-}
-
-function closeStatsModal() {
-  statsModal.classList.add("hidden");
 }
 
 async function fetchAutocomplete(prefix, targetInput, targetContainer) {
@@ -377,7 +326,7 @@ function renderResults(results) {
             <div class="result-score-badge">Score ${formatScore(result.score)}</div>
           </div>
           <h2 class="result-title">Indexed document #${escapeHtml(String(result.docId))}</h2>
-          <p class="result-score">Ranked by semantic query expansion plus TF-IDF relevance.</p>
+          <p class="result-score">Ranked through semantic query expansion and native TF-IDF scoring.</p>
           <p class="result-preview">${escapeHtml(result.preview || "")}</p>
         </article>
       `
@@ -386,10 +335,9 @@ function renderResults(results) {
 }
 
 async function performSearch(query) {
-  activeQuery = query;
   setView("results");
   resultsSearchInput.value = query;
-  resultsSummary.textContent = `Searching for “${query}”`;
+  resultsSummary.textContent = `Searching for "${query}"`;
   resultsList.innerHTML = "";
   setError("");
   setEmpty(false);
@@ -399,18 +347,15 @@ async function performSearch(query) {
   try {
     const data = await fetchJson(`${API_BASE_URL}/search?q=${encodeURIComponent(query)}`);
     const results = Array.isArray(data.results) ? data.results : [];
-    lastSearchDurationMs = performance.now() - startedAt;
-    resultsSummary.textContent = formatSemanticSummary(query, results, lastSearchDurationMs, data.semantic);
+    const durationMs = performance.now() - startedAt;
+    resultsSummary.textContent = formatSemanticSummary(query, results, durationMs, data.semantic);
     renderResults(results);
     setLoading(false);
     setEmpty(results.length === 0);
-    renderStatsModal();
   } catch (error) {
-    lastSearchDurationMs = performance.now() - startedAt;
     resultsList.innerHTML = "";
     setLoading(false);
     setError(error.message || "Something went wrong while searching");
-    renderStatsModal();
   }
 }
 
@@ -490,92 +435,24 @@ brandHomeButton.addEventListener("click", () => {
   resetToHome();
 });
 
-homeDashboardButton.addEventListener("click", () => {
-  openStatsModal();
-});
-
-homeDictionaryButton.addEventListener("click", () => {
-  openDictionaryModal();
-});
-
-resultsDictionaryButton.addEventListener("click", () => {
-  openDictionaryModal();
-});
-
-resultsDashboardButton.addEventListener("click", () => {
-  openStatsModal();
-});
-
-statsModalClose.addEventListener("click", () => {
-  closeStatsModal();
-});
-
-statsModal.addEventListener("click", (event) => {
-  if (event.target === statsModal) {
-    closeStatsModal();
-  }
-});
-
-dictionaryModalClose.addEventListener("click", () => {
-  closeDictionaryModal();
-});
-
-dictionaryModal.addEventListener("click", (event) => {
-  if (event.target === dictionaryModal) {
-    closeDictionaryModal();
-  }
-});
-
-dictionaryPrevButton.addEventListener("click", () => {
-  if (dictionaryPage > 1) {
-    loadDictionaryPage(dictionaryPage - 1);
-  }
-});
-
-dictionaryNextButton.addEventListener("click", () => {
-  if (dictionaryPage < dictionaryTotalPages) {
-    loadDictionaryPage(dictionaryPage + 1);
-  }
-});
-
-dictionarySearchInput.addEventListener(
-  "input",
-  debounce(() => {
-    dictionarySearchTerm = dictionarySearchInput.value.trim().toLowerCase();
-    loadDictionaryPage(1);
-  }, 220)
-);
-
 window.addEventListener("popstate", () => {
   const query = new URLSearchParams(window.location.search).get("q") || "";
   if (query.trim()) {
     performSearch(query.trim());
   } else {
-    setView("home");
-  }
-});
-
-window.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && !statsModal.classList.contains("hidden")) {
-    closeStatsModal();
-  }
-  if (event.key === "Escape" && !dictionaryModal.classList.contains("hidden")) {
-    closeDictionaryModal();
+    resetToHome();
   }
 });
 
 wireAutocompleteInput(homeSearchInput, homeAutocomplete);
 wireAutocompleteInput(resultsSearchInput, resultsAutocomplete);
+startSemanticBackground();
+fetchStats();
 
-(async function init() {
-  await fetchStats();
-
-  const query = new URLSearchParams(window.location.search).get("q") || "";
-  if (query.trim()) {
-    homeSearchInput.value = query.trim();
-    await performSearch(query.trim());
-  } else {
-    setView("home");
-    homeSearchInput.focus();
-  }
-})();
+const initialQuery = new URLSearchParams(window.location.search).get("q") || "";
+if (initialQuery.trim()) {
+  performSearch(initialQuery.trim());
+} else {
+  setView("home");
+  homeSearchInput.focus();
+}

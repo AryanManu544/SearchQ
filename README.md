@@ -4,10 +4,10 @@ SearchiQ is a full-stack semantic document search engine. It combines a native C
 
 ## Highlights
 
-- Native C++ search core with recursive document loading, preprocessing, inverted indexing, TF-IDF ranking, autocomplete, dictionary browsing, and API mode.
+- Native C++ search core with recursive document loading, preprocessing, inverted indexing, TF-IDF ranking, autocomplete, and API mode.
 - Word embedding query expansion from `src/models/word_embeddings.json`.
 - Express backend that keeps the compiled C++ process alive and serializes commands through stdin/stdout.
-- Static frontend with semantic search summaries, autocomplete, result cards, dictionary browser, and model/index dashboard.
+- Static frontend with semantic search summaries, autocomplete, focused result cards, and an interactive embedding-inspired background.
 - Deployment-ready structure for Render backend hosting and Vercel static frontend hosting.
 
 ## Project Structure

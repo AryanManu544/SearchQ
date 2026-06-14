@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="/assets/css/styles.css" />
   </head>
   <body>
+    <canvas id="semantic-background" class="semantic-background" aria-hidden="true"></canvas>
     <div class="bg-grid"></div>
     <div class="page-shell">
       <main class="app">
@@ -61,12 +62,6 @@
 
             <div class="home-meta">
               <div id="home-stats" class="pill hidden"></div>
-              <button id="home-dictionary-button" class="ghost-button" type="button">
-                Dictionary
-              </button>
-              <button id="home-dashboard-button" class="ghost-button" type="button">
-                Developer Dashboard
-              </button>
             </div>
           </div>
         </section>
@@ -97,12 +92,6 @@
             </div>
             <div class="results-meta">
               <p id="results-summary" class="results-summary"></p>
-              <button id="results-dictionary-button" class="text-button" type="button">
-                Dictionary
-              </button>
-              <button id="results-dashboard-button" class="text-button" type="button">
-                View stats
-              </button>
             </div>
           </header>
 
@@ -114,101 +103,6 @@
           </section>
         </section>
       </main>
-    </div>
-
-    <div id="stats-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="stats-modal-title">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div>
-            <p class="modal-eyebrow">Developer Dashboard</p>
-            <h2 id="stats-modal-title" class="modal-title">Index and Model Stats</h2>
-          </div>
-          <button id="stats-modal-close" class="modal-close" type="button" aria-label="Close stats modal">
-            ×
-          </button>
-        </div>
-        <div class="modal-body">
-          <div id="stats-modal-error" class="state-card hidden"></div>
-          <div class="stats-grid">
-            <article class="stat-tile">
-              <p class="stat-label">Total documents</p>
-              <p id="stats-total-documents" class="stat-value">--</p>
-            </article>
-            <article class="stat-tile">
-              <p class="stat-label">Total terms</p>
-              <p id="stats-total-terms" class="stat-value">--</p>
-            </article>
-            <article class="stat-tile">
-              <p class="stat-label">Total postings</p>
-              <p id="stats-total-postings" class="stat-value">--</p>
-            </article>
-            <article class="stat-tile">
-              <p class="stat-label">Last search time</p>
-              <p id="stats-search-time" class="stat-value">--</p>
-            </article>
-            <article class="stat-tile">
-              <p class="stat-label">Embedding terms</p>
-              <p id="stats-model-terms" class="stat-value">--</p>
-            </article>
-            <article class="stat-tile">
-              <p class="stat-label">Vector dimensions</p>
-              <p id="stats-model-dimensions" class="stat-value">--</p>
-            </article>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="dictionary-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="dictionary-modal-title">
-      <div class="modal-card modal-card-wide">
-        <div class="modal-header">
-          <div>
-            <p class="modal-eyebrow">Dictionary Browser</p>
-            <h2 id="dictionary-modal-title" class="modal-title">Indexed Terms</h2>
-            <p class="dictionary-subtitle">Browse your indexed vocabulary in a focused, searchable view.</p>
-          </div>
-          <button id="dictionary-modal-close" class="modal-close" type="button" aria-label="Close dictionary modal">
-            ×
-          </button>
-        </div>
-        <div class="modal-body modal-body-dictionary">
-          <div class="dictionary-toolbar">
-            <div class="dictionary-search-shell">
-              <span class="dictionary-search-icon" aria-hidden="true">⌕</span>
-              <input
-                id="dictionary-search-input"
-                class="dictionary-search-input"
-                type="text"
-                placeholder="Search indexed words by prefix"
-                aria-label="Search indexed dictionary terms"
-              />
-            </div>
-          </div>
-
-          <div class="dictionary-info-bar">
-            <div>
-              <p class="dictionary-info-label">Overview</p>
-              <p id="dictionary-meta" class="dictionary-meta hidden"></p>
-            </div>
-            <div>
-              <p class="dictionary-info-label">Position</p>
-              <p id="dictionary-page-info" class="dictionary-page-info"></p>
-            </div>
-          </div>
-
-          <div id="dictionary-loading" class="state-card hidden">Loading...</div>
-          <div id="dictionary-error" class="state-card hidden"></div>
-
-          <section class="dictionary-surface">
-            <div id="dictionary-results" class="dictionary-results"></div>
-          </section>
-
-          <div id="dictionary-pagination" class="dictionary-pagination hidden">
-            <button id="dictionary-prev" class="ghost-button" type="button">Previous</button>
-            <button id="dictionary-next" class="ghost-button" type="button">Next</button>
-          </div>
-        </div>
-      </div>
     </div>
 
     <script src="/config.js"></script>
