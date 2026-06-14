@@ -7,7 +7,6 @@ const homeSearchInput = document.getElementById("home-search-input");
 const resultsSearchInput = document.getElementById("results-search-input");
 const homeAutocomplete = document.getElementById("home-autocomplete");
 const resultsAutocomplete = document.getElementById("results-autocomplete");
-const homeStats = document.getElementById("home-stats");
 const loadingState = document.getElementById("loading-state");
 const emptyState = document.getElementById("empty-state");
 const errorState = document.getElementById("error-state");
@@ -22,7 +21,6 @@ const AUTOCOMPLETE_DEBOUNCE_MS = 300;
 let activeAutocompleteIndex = -1;
 let currentSuggestions = [];
 let lastAutocompleteRequestId = 0;
-let latestStats = null;
 
 function startSemanticBackground() {
   if (!backgroundCanvas) {
@@ -236,14 +234,6 @@ function debounce(callback, delay) {
   };
 }
 
-function formatScore(score) {
-  const numericScore = Number(score);
-  if (Number.isNaN(numericScore)) {
-    return "0.0000";
-  }
-  return numericScore.toFixed(4);
-}
-
 function formatInteger(value) {
   const numericValue = Number(value);
   if (Number.isNaN(numericValue)) {
@@ -275,18 +265,6 @@ function formatSemanticSummary(query, results, durationMs, semantic) {
 
   const terms = expandedTerms.map((item) => item.term || item).filter(Boolean).slice(0, 5);
   return `${baseSummary} | expanded with ${terms.join(", ")}`;
-}
-
-async function fetchStats() {
-  try {
-    const stats = await fetchJson(`${API_BASE_URL}/stats`);
-    latestStats = stats;
-    const vectors = stats.semanticModel?.enabled ? ` | ${formatInteger(stats.semanticModel.vocabularySize)} embedding terms` : "";
-    homeStats.textContent = `${formatInteger(stats.totalDocuments)} docs indexed${vectors}`;
-    homeStats.classList.remove("hidden");
-  } catch (_error) {
-    homeStats.classList.add("hidden");
-  }
 }
 
 async function fetchAutocomplete(prefix, targetInput, targetContainer) {
@@ -323,7 +301,6 @@ function renderResults(results) {
         <article class="result-card">
           <div class="result-meta-row">
             <div class="result-url">Document ${escapeHtml(String(result.docId))}</div>
-            <div class="result-score-badge">Score ${formatScore(result.score)}</div>
           </div>
           <h2 class="result-title">Indexed document #${escapeHtml(String(result.docId))}</h2>
           <p class="result-score">Ranked through semantic query expansion and native TF-IDF scoring.</p>
@@ -447,7 +424,6 @@ window.addEventListener("popstate", () => {
 wireAutocompleteInput(homeSearchInput, homeAutocomplete);
 wireAutocompleteInput(resultsSearchInput, resultsAutocomplete);
 startSemanticBackground();
-fetchStats();
 
 const initialQuery = new URLSearchParams(window.location.search).get("q") || "";
 if (initialQuery.trim()) {
