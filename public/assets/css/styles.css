@@ -171,28 +171,29 @@ input {
 
 .indexing-beam {
   position: absolute;
-  left: -180px;
+  left: 0;
   bottom: 0;
-  width: 180px;
+  width: 100%;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #00E5C0, transparent);
-  opacity: 0.4;
+  background: #00E5C0;
+  opacity: 0.3;
   pointer-events: none;
-  animation: scan 3s linear infinite;
+  animation: scan 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   transition: opacity 0.3s ease;
 }
 
-.search-box:has(.search-input:not(:placeholder-shown)) .indexing-beam {
+.search-box:has(.search-input:not(:placeholder-shown)) .indexing-beam,
+.search-box:focus-within .indexing-beam {
   animation-play-state: paused;
-  opacity: 0;
+  opacity: 0.1;
 }
 
 @keyframes scan {
   0% {
-    left: -180px;
+    transform: translateX(-100%);
   }
   100% {
-    left: 100%;
+    transform: translateX(100%);
   }
 }
 
@@ -476,17 +477,22 @@ input {
   top: 0;
   left: 0;
   bottom: 0;
-  width: 4px;
+  width: 3px;
   background: #00E5C0;
-  opacity: 0.5;
+  opacity: 0.6;
   border-top-left-radius: var(--radius-xl);
   border-bottom-left-radius: var(--radius-xl);
+  transition: opacity 0.2s ease;
 }
 
 .result-card:hover {
   border-color: rgba(0, 229, 192, 0.4);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55), 0 0 15px rgba(0, 229, 192, 0.08);
   transform: translateY(-2px);
+}
+
+.result-card:hover::before {
+  opacity: 1;
 }
 
 .result-meta-row {
@@ -507,6 +513,20 @@ input {
   text-shadow: 0 0 8px rgba(0, 229, 192, 0.2);
 }
 
+.result-score-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  background: rgba(0, 229, 192, 0.08);
+  border: 1px solid rgba(0, 229, 192, 0.25);
+  border-radius: 12px;
+  color: #00E5C0;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
 .result-title {
   margin: 0 0 8px;
   color: #F0F8F6;
@@ -514,16 +534,10 @@ input {
   line-height: 1.2;
 }
 
-.result-score {
-  margin: 0 0 14px;
-  color: var(--muted);
-  font-size: 0.88rem;
-  opacity: 0.85;
-}
-
 .result-preview {
   margin: 0;
-  color: #B0C4C0;
+  color: #6B9E96;
+  font-size: 0.94rem;
   line-height: 1.7;
 }
 

@@ -318,9 +318,9 @@ function renderResults(results) {
         <article class="result-card">
           <div class="result-meta-row">
             <div class="result-url">Document ${escapeHtml(String(result.docId))}</div>
+            <div class="result-score-badge">${escapeHtml(Number(result.score || 0).toFixed(1))} score</div>
           </div>
           <h2 class="result-title">Indexed document #${escapeHtml(String(result.docId))}</h2>
-          <p class="result-score">Ranked through semantic query expansion and native TF-IDF scoring.</p>
           <p class="result-preview">${escapeHtml(result.preview || "")}</p>
         </article>
       `
