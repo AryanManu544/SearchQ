@@ -393,8 +393,17 @@ input {
 
 .results-summary {
   margin: 0 0 4px;
-  color: var(--muted);
-  font-size: 0.95rem;
+  color: #00E5C0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+  opacity: 0.9;
+}
+
+.results-summary::before {
+  content: "> ";
+  color: #00E5C0;
+  font-weight: 800;
 }
 
 .results-content {
@@ -420,18 +429,33 @@ input {
 }
 
 .result-card {
-  padding: 24px;
-  border: 1px solid rgba(0, 229, 192, 0.1);
+  position: relative;
+  padding: 24px 24px 24px 30px;
+  border: 1px solid rgba(0, 229, 192, 0.2);
   border-radius: var(--radius-xl);
-  background: linear-gradient(180deg, rgba(13, 36, 32, 0.35) 0%, rgba(8, 22, 19, 0.2) 100%);
+  background: #141F1E;
   box-shadow: var(--shadow-soft);
   backdrop-filter: blur(12px);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  overflow: hidden;
+}
+
+.result-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 4px;
+  background: #00E5C0;
+  opacity: 0.5;
+  border-top-left-radius: var(--radius-xl);
+  border-bottom-left-radius: var(--radius-xl);
 }
 
 .result-card:hover {
-  border-color: rgba(0, 229, 192, 0.25);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 229, 192, 0.05);
+  border-color: rgba(0, 229, 192, 0.4);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55), 0 0 15px rgba(0, 229, 192, 0.08);
   transform: translateY(-2px);
 }
 
@@ -445,16 +469,17 @@ input {
 
 .result-url {
   color: #00E5C0;
-  font-size: 0.88rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.95rem;
   font-weight: 700;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   text-shadow: 0 0 8px rgba(0, 229, 192, 0.2);
 }
 
 .result-title {
   margin: 0 0 8px;
-  color: #FFFFFF;
+  color: #F0F8F6;
   font-size: 1.25rem;
   line-height: 1.2;
 }
@@ -462,12 +487,13 @@ input {
 .result-score {
   margin: 0 0 14px;
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
+  opacity: 0.85;
 }
 
 .result-preview {
   margin: 0;
-  color: #A3C3BE;
+  color: #B0C4C0;
   line-height: 1.7;
 }
 
