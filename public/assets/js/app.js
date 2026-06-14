@@ -29,7 +29,7 @@ function startSemanticBackground() {
 
   const context = backgroundCanvas.getContext("2d");
   const pointer = { x: 0, y: 0, active: false };
-  const colors = ["#15b8a6", "#f4b942", "#ff6b4a", "#2b6dff"];
+  const colors = ["#00E5C0", "#80F3E2", "#34D399", "#7EADA6"];
   let width = 0;
   let height = 0;
   let nodes = [];
@@ -43,30 +43,42 @@ function startSemanticBackground() {
     backgroundCanvas.style.width = `${width}px`;
     backgroundCanvas.style.height = `${height}px`;
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
-    const nodeCount = Math.max(32, Math.min(84, Math.floor(width / 18)));
-    nodes = Array.from({ length: nodeCount }, (_, index) => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 0.45,
-      vy: (Math.random() - 0.5) * 0.45,
-      radius: 1.5 + Math.random() * 2.2,
-      color: colors[index % colors.length],
-    }));
+    const nodeCount = Math.max(60, Math.min(140, Math.floor(width / 11)));
+    nodes = Array.from({ length: nodeCount }, (_, index) => {
+      const baseRadius = 1.0 + Math.random() * 2.0;
+      return {
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        baseRadius: baseRadius,
+        radius: baseRadius,
+        phase: Math.random() * Math.PI * 2,
+        pulseSpeed: 0.0015 + Math.random() * 0.002,
+        color: colors[index % colors.length],
+      };
+    });
   }
 
-  function draw() {
+  function draw(timestamp) {
     context.clearRect(0, 0, width, height);
 
-    const wash = context.createLinearGradient(0, 0, width, height);
-    wash.addColorStop(0, "rgba(10, 20, 31, 0.05)");
-    wash.addColorStop(0.42, "rgba(21, 184, 166, 0.09)");
-    wash.addColorStop(1, "rgba(255, 107, 74, 0.10)");
+    // Subtle background glow overlay to complement the CSS gradient
+    const wash = context.createRadialGradient(width / 2, height / 2, 10, width / 2, height / 2, Math.max(width, height));
+    wash.addColorStop(0, "rgba(0, 229, 192, 0.03)");
+    wash.addColorStop(1, "rgba(10, 15, 14, 0)");
     context.fillStyle = wash;
     context.fillRect(0, 0, width, height);
 
     for (const node of nodes) {
       node.x += node.vx;
       node.y += node.vy;
+
+      // Pulse radius
+      node.radius = node.baseRadius + Math.sin(timestamp * node.pulseSpeed + node.phase) * 0.8;
+      if (node.radius < 0.5) {
+        node.radius = 0.5;
+      }
 
       if (node.x < -20 || node.x > width + 20) {
         node.vx *= -1;
@@ -96,7 +108,10 @@ function startSemanticBackground() {
           context.beginPath();
           context.moveTo(left.x, left.y);
           context.lineTo(right.x, right.y);
-          context.strokeStyle = `rgba(16, 24, 32, ${0.11 * (1 - distance / 150)})`;
+          const shimmer = Math.sin(timestamp * 0.0015 + (left.x + right.y) * 0.01) * 0.35 + 0.65;
+          const baseOpacity = 0.15 * (1 - distance / 150);
+          const opacity = baseOpacity * shimmer;
+          context.strokeStyle = `rgba(0, 229, 192, ${opacity})`;
           context.lineWidth = 1;
           context.stroke();
         }
@@ -107,7 +122,9 @@ function startSemanticBackground() {
       context.beginPath();
       context.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
       context.fillStyle = node.color;
-      context.globalAlpha = 0.62;
+      // Pulse node opacity slightly
+      const pulseOpacity = 0.5 + 0.25 * Math.sin(timestamp * node.pulseSpeed + node.phase);
+      context.globalAlpha = pulseOpacity;
       context.fill();
       context.globalAlpha = 1;
     }
@@ -126,7 +143,7 @@ function startSemanticBackground() {
   });
 
   resize();
-  draw();
+  window.requestAnimationFrame(draw);
 }
 
 function escapeHtml(value) {
