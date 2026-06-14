@@ -194,6 +194,18 @@ int runApiMode(SearchEngine& engine) {
 
             vector<string> suggestions = engine.autocomplete(prefix, 10);
             cout << buildAutocompleteJson(suggestions) << '\n';
+        } else if (cmd == "document") {
+            int docId;
+            if (iss >> docId) {
+                if (docId >= 0 && docId < static_cast<int>(engine.getTotalDocuments())) {
+                    string content = engine.getDocument(docId);
+                    cout << "{\"docId\":" << docId << ",\"content\":" << makeJsonString(content) << "}\n";
+                } else {
+                    cout << buildErrorJson("Document ID out of range.") << '\n';
+                }
+            } else {
+                cout << buildErrorJson("Invalid document ID.") << '\n';
+            }
         } else if (cmd == "dictionary") {
             cout << buildJsonStringArray(engine.getDictionaryTerms()) << '\n';
         } else if (cmd == "stats") {

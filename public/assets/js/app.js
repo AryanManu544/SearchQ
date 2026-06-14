@@ -315,7 +315,7 @@ function renderResults(results) {
   resultsList.innerHTML = results
     .map(
       (result) => `
-        <article class="result-card">
+        <article class="result-card" data-doc-id="${escapeHtml(String(result.docId))}" data-score="${escapeHtml(Number(result.score || 0).toFixed(1))}">
           <div class="result-meta-row">
             <div class="result-url">Document ${escapeHtml(String(result.docId))}</div>
             <div class="result-score-badge">${escapeHtml(Number(result.score || 0).toFixed(1))} score</div>
@@ -441,6 +441,206 @@ window.addEventListener("popstate", () => {
 wireAutocompleteInput(homeSearchInput, homeAutocomplete);
 wireAutocompleteInput(resultsSearchInput, resultsAutocomplete);
 startSemanticBackground();
+
+// Document Detail Modal Functionality
+function parseDocHeaders(rawText) {
+  const lines = rawText.split("\n");
+  let from = "Unknown Sender";
+  let subject = "No Subject";
+  let bodyStartIndex = 0;
+  let headersEnded = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line === "") {
+      bodyStartIndex = i + 1;
+      headersEnded = true;
+      break;
+    }
+    const fromMatch = line.match(/^From:\s*(.*)/i);
+    if (fromMatch) {
+      from = fromMatch[1];
+      continue;
+    }
+    const subjectMatch = line.match(/^Subject:\s*(.*)/i);
+    if (subjectMatch) {
+      subject = subjectMatch[1];
+      continue;
+    }
+  }
+
+  const fullContent = headersEnded 
+    ? lines.slice(bodyStartIndex).join("\n").trim()
+    : rawText.trim();
+
+  return { from, subject, fullContent };
+}
+
+function extractKeyTerms(subject, content) {
+  const cleanSubject = subject
+    .replace(/^(re|fwd|fw|re\^\[\d+\]):\s*/i, "")
+    .replace(/[^\w\s]/g, " ")
+    .trim();
+
+  const stopWords = new Set([
+    "the", "and", "a", "of", "to", "in", "is", "that", "it", "on", "for", "this",
+    "with", "as", "was", "are", "have", "you", "your", "from", "subject", "organization"
+  ]);
+
+  const subjectTerms = cleanSubject
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(word => word.length >= 3 && !stopWords.has(word));
+
+  if (subjectTerms.length >= 2) {
+    return subjectTerms.slice(0, 5).join(" ");
+  }
+
+  const bodyWords = content
+    .toLowerCase()
+    .replace(/[^\w\s]/g, " ")
+    .split(/\s+/)
+    .filter(word => word.length >= 4 && !stopWords.has(word));
+
+  const freqMap = {};
+  for (const word of bodyWords) {
+    freqMap[word] = (freqMap[word] || 0) + 1;
+  }
+
+  const sortedWords = Object.keys(freqMap).sort((a, b) => freqMap[b] - freqMap[a]);
+  const contentTerms = sortedWords.slice(0, 4);
+
+  const merged = [...subjectTerms, ...contentTerms].slice(0, 5);
+  return merged.join(" ");
+}
+
+const modalOverlay = document.getElementById("document-modal");
+const modalCloseBtn = document.getElementById("modal-close-button");
+const modalBtnCopy = document.getElementById("modal-btn-copy");
+const modalBtnExport = document.getElementById("modal-btn-export");
+const modalBtnSimilar = document.getElementById("modal-btn-similar");
+
+async function openDocumentModal(docId, score) {
+  const modalDocId = document.getElementById("modal-doc-id");
+  const modalTitle = document.getElementById("modal-doc-title");
+  const modalScore = document.getElementById("modal-meta-score");
+  const modalSender = document.getElementById("modal-meta-sender");
+  const modalSubject = document.getElementById("modal-meta-subject");
+  const modalFrom = document.getElementById("modal-body-from");
+  const modalSubj = document.getElementById("modal-body-subject");
+  const modalContent = document.getElementById("modal-body-content");
+
+  // Reset fields
+  modalDocId.textContent = `Document ID: ${docId}`;
+  modalTitle.textContent = `Indexed Document #${docId}`;
+  modalScore.textContent = `${score}`;
+  modalSender.textContent = "Loading...";
+  modalSubject.textContent = "Loading...";
+  modalFrom.textContent = "Loading...";
+  modalSubj.textContent = "Loading...";
+  modalContent.textContent = "Loading full document content...";
+
+  modalOverlay.classList.remove("hidden");
+
+  try {
+    const data = await fetchJson(`${API_BASE_URL}/document?id=${docId}`);
+    const rawContent = data.content || "";
+    const parsed = parseDocHeaders(rawContent);
+
+    modalSender.textContent = parsed.from;
+    modalSubject.textContent = parsed.subject;
+    modalFrom.textContent = parsed.from;
+    modalSubj.textContent = parsed.subject;
+    modalContent.textContent = parsed.fullContent;
+
+    modalOverlay.setAttribute("data-current-id", docId);
+    modalOverlay.setAttribute("data-current-subject", parsed.subject);
+    modalOverlay.setAttribute("data-current-from", parsed.from);
+    modalOverlay.setAttribute("data-current-content", parsed.fullContent);
+  } catch (error) {
+    modalContent.textContent = `Error loading document content: ${error.message}`;
+    modalSender.textContent = "Error";
+    modalSubject.textContent = "Error";
+    modalFrom.textContent = "Error";
+    modalSubj.textContent = "Error";
+  }
+}
+
+function closeDocumentModal() {
+  modalOverlay.classList.add("hidden");
+}
+
+resultsList.addEventListener("click", (event) => {
+  const card = event.target.closest(".result-card");
+  if (!card) return;
+
+  const docId = card.getAttribute("data-doc-id");
+  const score = card.getAttribute("data-score");
+  if (docId) {
+    openDocumentModal(docId, score);
+  }
+});
+
+modalCloseBtn.addEventListener("click", closeDocumentModal);
+
+modalOverlay.addEventListener("click", (event) => {
+  if (event.target === modalOverlay) {
+    closeDocumentModal();
+  }
+});
+
+window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeDocumentModal();
+  }
+});
+
+modalBtnCopy.addEventListener("click", () => {
+  const docId = modalOverlay.getAttribute("data-current-id");
+  if (!docId) return;
+
+  navigator.clipboard.writeText(docId).then(() => {
+    const originalText = modalBtnCopy.textContent;
+    modalBtnCopy.textContent = "Copied!";
+    modalBtnCopy.style.color = "#00E5C0";
+    setTimeout(() => {
+      modalBtnCopy.textContent = originalText;
+      modalBtnCopy.style.color = "";
+    }, 1500);
+  });
+});
+
+modalBtnExport.addEventListener("click", () => {
+  const docId = modalOverlay.getAttribute("data-current-id");
+  const content = modalOverlay.getAttribute("data-current-content");
+  if (!docId || !content) return;
+
+  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `document_${docId}.txt`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+});
+
+modalBtnSimilar.addEventListener("click", () => {
+  const subject = modalOverlay.getAttribute("data-current-subject") || "";
+  const content = modalOverlay.getAttribute("data-current-content") || "";
+  const query = extractKeyTerms(subject, content);
+  if (!query) return;
+
+  closeDocumentModal();
+
+  if (resultsView.classList.contains("hidden")) {
+    homeSearchInput.value = query;
+  } else {
+    resultsSearchInput.value = query;
+  }
+  submitSearch(query);
+});
 
 const initialQuery = new URLSearchParams(window.location.search).get("q") || "";
 if (initialQuery.trim()) {

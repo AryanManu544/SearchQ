@@ -62,6 +62,20 @@ app.get("/api/search", async (req, res) => {
   }
 });
 
+app.get("/api/document", async (req, res) => {
+  const id = getRequiredQueryParam(req, res, "id");
+  if (!id) {
+    return;
+  }
+
+  try {
+    const result = await searchClient.sendCommand(`document ${id}`, config.timeouts.search);
+    res.json(result);
+  } catch (error) {
+    res.status(504).json({ error: error.message });
+  }
+});
+
 app.get("/api/autocomplete", async (req, res) => {
   const prefix = getRequiredQueryParam(req, res, "prefix");
   if (!prefix) {

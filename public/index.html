@@ -104,6 +104,43 @@
       </main>
     </div>
 
+    <!-- Document Detail Modal Overlay -->
+    <div id="document-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <header class="modal-header">
+          <div class="modal-header-left">
+            <div id="modal-doc-id" class="modal-doc-id"></div>
+            <h2 id="modal-doc-title" class="modal-doc-title"></h2>
+          </div>
+          <button id="modal-close-button" class="modal-close-button" type="button" aria-label="Close modal">✕</button>
+        </header>
+        <div class="modal-meta-strip">
+          <span class="meta-item"><span class="meta-label">TF-IDF Score:</span> <span id="modal-meta-score"></span></span>
+          <span class="meta-item"><span class="meta-label">Sender:</span> <span id="modal-meta-sender"></span></span>
+          <span class="meta-item"><span class="meta-label">Subject:</span> <span id="modal-meta-subject"></span></span>
+        </div>
+        <div class="modal-body">
+          <div class="modal-section">
+            <div class="modal-section-label">FROM</div>
+            <div id="modal-body-from" class="modal-section-content"></div>
+          </div>
+          <div class="modal-section">
+            <div class="modal-section-label">SUBJECT</div>
+            <div id="modal-body-subject" class="modal-section-content"></div>
+          </div>
+          <div class="modal-section">
+            <div class="modal-section-label">FULL CONTENT</div>
+            <pre id="modal-body-content" class="modal-section-content body-text-pre"></pre>
+          </div>
+        </div>
+        <footer class="modal-footer">
+          <button id="modal-btn-copy" class="modal-btn secondary-btn" type="button">Copy ID</button>
+          <button id="modal-btn-export" class="modal-btn secondary-btn" type="button">Export</button>
+          <button id="modal-btn-similar" class="modal-btn primary-btn" type="button">Find similar</button>
+        </footer>
+      </div>
+    </div>
+
     <script src="/config.js"></script>
     <script src="/assets/js/app.js"></script>
   </body>
